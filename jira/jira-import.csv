@@ -1,0 +1,17 @@
+﻿Issue Type,Issue ID,Summary,Parent,Description
+Epic,EP-01,Home Page de gestión de eventos,,Maquetación de la Home Page
+Story,HU-01,Visualizar la Home Page,EP-01,Home Page clara y responsiva
+Task,T-01,Crear estructura semántica HTML5,HU-01,"Header, main y footer"
+Task,T-02,Diseñar hero y CTA,HU-01,"Hero, estadísticas y llamadas a la acción"
+Task,T-03,Construir sección de características,HU-01,Tres características principales
+Task,T-04,Construir listado de eventos,HU-01,Tarjetas de próximos eventos
+Story,HU-02,Aplicar diseño Mobile-First,EP-01,"Responsive para móvil, tablet y escritorio"
+Task,T-05,Crear estilos base para móvil,HU-02,CSS base
+Task,T-06,Incorporar media queries,HU-02,Adaptación desde 700px
+Task,T-07,Validar responsive,HU-02,Revisión visual
+Story,HU-03,Interacción de navegación,EP-01,Menú móvil
+Task,T-08,Implementar botón de menú,HU-03,Toggle de navegación
+Task,T-09,Añadir aria-expanded,HU-03,Accesibilidad básica
+
+"Referencia GitHub","","https://github.com/OscarGetial/Gestion_Eventos","","Repositorio del equipo"
+"Referencia Jira","","https://uceva-team-gbg1xixs.atlassian.net/jira/software/projects/SCRUM/boards/1/timeline","","Proyecto Scrum"

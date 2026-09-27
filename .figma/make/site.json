@@ -1,0 +1,10 @@
+{
+  "description": "Manage and book events seamlessly with user roles for clients, agents, and admins offering event creation, reservations, and detailed analytics.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

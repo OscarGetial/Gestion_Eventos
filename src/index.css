@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-violet: #7C3AED;
+  --color-violet-light: #A78BFA;
+  --color-violet-dim: rgba(124, 58, 237, 0.12);
+  --color-gold: #F59E0B;
+  --color-gold-light: #FCD34D;
+  --color-surface: #11102A;
+  --color-surface-2: #1C1A3A;
+  --color-surface-3: #231F4A;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+  --color-text: #F5F3FF;
+  --color-muted: #8B87B0;
+  --color-dim: #4F4B7A;
+  --color-border: rgba(124, 58, 237, 0.18);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #0A0918;
+  color: #F5F3FF;
+  font-family: 'Outfit', system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+.font-mono-data {
+  font-family: 'DM Mono', 'Courier New', monospace;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #0A0918; }
+::-webkit-scrollbar-thumb { background: #2D2B55; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4C46A0; }
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+}
+
+::selection {
+  background: rgba(124, 58, 237, 0.3);
+  color: #F5F3FF;
+}

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CurrentUser, AppEvent, Page } from '../types'
 import { C } from '../theme'
 import Navbar from '../components/Navbar'
 import EventCard from '../components/EventCard'
 import { mockEvents } from '../data'
+
 
 interface ClientHomePageProps {
   user: CurrentUser
@@ -16,14 +17,89 @@ const CITIES = ['Todas las ciudades', 'Bogotá', 'Medellín', 'Cali', 'Barranqui
 export default function ClientHomePage({ user, navigate, onLogout }: ClientHomePageProps) {
   const [search, setSearch] = useState('')
   const [city, setCity] = useState('Todas las ciudades')
+  const [events, setEvents] = useState<AppEvent[]>([])
+const [loading, setLoading] = useState(true)
+const [error, setError] = useState('')
 
-  const filtered = mockEvents.filter(e => {
-    const matchSearch = e.name.toLowerCase().includes(search.toLowerCase()) ||
-      e.theater.toLowerCase().includes(search.toLowerCase())
-    const matchCity = city === 'Todas las ciudades' || e.city === city
-    return matchSearch && matchCity
-  })
+useEffect(() => {
+  const controller = new AbortController()
 
+  const cargarEventos = async () => {
+    try {
+      const response = await fetch(
+        'http://localhost:3001/api/eventos',
+        { signal: controller.signal }
+      )
+
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar los eventos')
+      }
+
+      const datos = await response.json()
+
+      const eventosNeon: AppEvent[] = datos.map((e: any) => ({
+        id: String(e.id),
+        code: e.codigo ?? '',
+        name: e.titulo,
+        description: e.descripcion ?? '',
+        theater: e.lugar,
+        city: e.ciudad ?? '',
+        startDate: e.fecha,
+        endDate: e.fecha_fin ?? e.fecha,
+        capacity: Number(e.capacidad),
+        available: Number(e.disponibles ?? e.capacidad),
+        price: Number(e.precio),
+        image: e.imagen ?? '',
+        status: e.estado ?? 'active',
+        observations: e.observaciones ?? '',
+      }))
+
+      if (!controller.signal.aborted) {
+        setEvents(eventosNeon)
+      }
+    } catch (err) {
+      if (!controller.signal.aborted) {
+        setError('No se pudieron cargar los eventos de Neon')
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setLoading(false)
+      }
+    }
+  }
+
+  cargarEventos()
+
+  return () => controller.abort()
+}, [])
+
+const allEvents: AppEvent[] = [
+  ...events,
+  ...mockEvents.filter(
+    demo => !events.some(
+      real =>
+        real.code === demo.code ||
+        (
+          real.name === demo.name &&
+          real.startDate.slice(0, 10) === demo.startDate.slice(0, 10)
+        )
+    )
+  )
+]
+
+const filtered = allEvents.filter(e => {
+  const matchSearch =
+    e.name.toLowerCase().includes(search.toLowerCase()) ||
+    e.theater.toLowerCase().includes(search.toLowerCase())
+
+  const matchCity =
+    city === 'Todas las ciudades' || e.city === city
+
+  const available =
+    e.status === 'active' && e.available > 0
+
+  return matchSearch && matchCity && available
+})
   return (
     <div style={{ minHeight: '100vh', background: C.bg }}>
       <Navbar user={user} onNavigate={navigate} onLogout={onLogout} currentPage="client-home" />
@@ -60,7 +136,7 @@ export default function ClientHomePage({ user, navigate, onLogout }: ClientHomeP
             {/* Quick stats */}
             <div className="flex flex-wrap gap-6 mt-8">
               {[
-                { label: 'Eventos disponibles', value: `${mockEvents.filter(e => e.status === 'active').length}` },
+                { label: 'Eventos disponibles', value: `${events.filter(e => e.status === 'active' && e.available > 0).length}` },
                 { label: 'Ciudades', value: '4+' },
                 { label: 'Espectáculos este mes', value: '12' },
               ].map(s => (
@@ -130,6 +206,17 @@ export default function ClientHomePage({ user, navigate, onLogout }: ClientHomeP
               {filtered.length} {filtered.length === 1 ? 'resultado' : 'resultados'}
             </span>
           </div>
+          {loading && (
+  <p style={{ color: C.muted }}>
+    Cargando eventos...
+  </p>
+)}
+
+{error && (
+  <p style={{ color: '#ef4444' }}>
+    {error}
+  </p>
+)}
 
           {/* Grid */}
           {filtered.length > 0 ? (

@@ -20,18 +20,57 @@ const DEMO_USERS: Record<UserType, CurrentUser> = {
 }
 
 export default function App() {
-  const [page, setPage] = useState<Page>('login')
-  const [user, setUser] = useState<CurrentUser | null>(null)
-  const [selectedEvent, setSelectedEvent] = useState<AppEvent | null>(null)
+const [page, setPage] = useState<Page>(() => {
+  return (
+    sessionStorage.getItem('spektra_page') as Page
+  ) || 'login'
+})
 
-  const navigate = (target: Page, event?: AppEvent) => {
-    if (event) setSelectedEvent(event)
-    setPage(target)
-    window.scrollTo({ top: 0, behavior: 'instant' })
+const [user, setUser] = useState<CurrentUser | null>(() => {
+  const saved = sessionStorage.getItem('spektra_user')
+
+  if (!saved) return null
+
+  try {
+    return JSON.parse(saved) as CurrentUser
+  } catch {
+    return null
   }
+})
+
+const [selectedEvent, setSelectedEvent] = useState<AppEvent | null>(() => {
+  const saved = sessionStorage.getItem('spektra_selected_event')
+
+  if (!saved) return null
+
+  try {
+    return JSON.parse(saved) as AppEvent
+  } catch {
+    return null
+  }
+})
+
+const navigate = (target: Page, event?: AppEvent) => {
+  if (event) {
+    setSelectedEvent(event)
+    sessionStorage.setItem(
+      'spektra_selected_event',
+      JSON.stringify(event)
+    )
+  }
+
+  setPage(target)
+  sessionStorage.setItem('spektra_page', target)
+
+  window.scrollTo({ top: 0, behavior: 'instant' })
+}
 
   const handleLogin = (type: UserType) => {
     setUser(DEMO_USERS[type])
+    sessionStorage.setItem(
+  'spektra_user',
+  JSON.stringify(DEMO_USERS[type])
+)
     const landingPage: Record<UserType, Page> = {
       client: 'client-home',
       agent: 'agent-dashboard',
@@ -40,11 +79,15 @@ export default function App() {
     navigate(landingPage[type])
   }
 
-  const handleLogout = () => {
-    setUser(null)
-    setSelectedEvent(null)
-    navigate('login')
-  }
+const handleLogout = () => {
+  sessionStorage.removeItem('spektra_user')
+  sessionStorage.removeItem('spektra_page')
+  sessionStorage.removeItem('spektra_selected_event')
+
+  setUser(null)
+  setSelectedEvent(null)
+  navigate('login')
+}
 
   // Auth gates
   if (!user) {

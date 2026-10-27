@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CurrentUser, AppEvent, Page, EventStatus } from '../types'
 import { C, S, formatCOP, formatDateShort } from '../theme'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import Badge from '../components/Badge'
-import { mockEvents } from '../data'
+
 
 interface ManageEventsPageProps {
   user: CurrentUser
@@ -13,9 +13,66 @@ interface ManageEventsPageProps {
 }
 
 export default function ManageEventsPage({ user, navigate, onLogout }: ManageEventsPageProps) {
-  const [events, setEvents] = useState(mockEvents)
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | EventStatus>('all')
+const [events, setEvents] = useState<AppEvent[]>([])
+const [search, setSearch] = useState('')
+const [statusFilter, setStatusFilter] = useState<'all' | EventStatus>('all')
+const [loading, setLoading] = useState(true)
+const [error, setError] = useState('')
+useEffect(() => {
+  const controller = new AbortController()
+
+  const cargarEventos = async () => {
+    try {
+      const respuesta = await fetch(
+        'http://localhost:3001/api/eventos',
+        { signal: controller.signal }
+      )
+
+      if (!respuesta.ok) {
+        throw new Error('No se pudieron cargar los eventos')
+      }
+
+      const datos = await respuesta.json()
+
+      const eventosNeon: AppEvent[] = datos.map((e: any) => ({
+        id: String(e.id),
+        code: e.codigo ?? '',
+        name: e.titulo,
+        description: e.descripcion ?? '',
+        theater: e.lugar,
+        city: e.ciudad ?? '',
+        startDate: e.fecha,
+        endDate: e.fecha_fin ?? e.fecha,
+        capacity: Number(e.capacidad),
+        available: Number(e.disponibles ?? e.capacidad),
+        price: Number(e.precio),
+        image: e.imagen ?? '',
+        status: (e.estado ?? 'active') as EventStatus,
+        observations: e.observaciones ?? '',
+      }))
+
+      if (!controller.signal.aborted) {
+        setEvents(eventosNeon)
+      }
+    } catch (err) {
+      if (!controller.signal.aborted) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Error al consultar Neon'
+        )
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setLoading(false)
+      }
+    }
+  }
+
+  cargarEventos()
+
+  return () => controller.abort()
+}, [])
 
   const filtered = events.filter(e => {
     const matchSearch = e.name.toLowerCase().includes(search.toLowerCase()) || e.city.toLowerCase().includes(search.toLowerCase())
@@ -23,9 +80,36 @@ export default function ManageEventsPage({ user, navigate, onLogout }: ManageEve
     return matchSearch && matchStatus
   })
 
-  const changeStatus = (id: string, status: EventStatus) => {
-    setEvents(prev => prev.map(e => e.id === id ? { ...e, status } : e))
+ const changeStatus = async (id: string, status: EventStatus) => {
+  try {
+    const respuesta = await fetch(
+      `http://localhost:3001/api/eventos/${id}/estado`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          estado: status
+        })
+      }
+    )
+
+    if (!respuesta.ok) {
+      throw new Error('No se pudo actualizar el evento')
+    }
+
+    setEvents(prev =>
+      prev.map(e =>
+        e.id === id ? { ...e, status } : e
+      )
+    )
+
+  } catch (error) {
+    console.error('Error actualizando estado:', error)
+    alert('No se pudo actualizar el evento en Neon')
   }
+}
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg }}>

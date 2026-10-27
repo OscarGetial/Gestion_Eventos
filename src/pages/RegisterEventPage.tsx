@@ -26,15 +26,53 @@ export default function RegisterEventPage({ user, navigate, onLogout }: Register
     observations: '',
   })
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+const [error, setError] = useState('')
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [field]: e.target.value }))
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setSaving(true)
+  setError('')
+
+  try {
+    const response = await fetch(
+      'http://localhost:3001/api/eventos',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      }
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al guardar')
+    }
+
+    console.log('Evento guardado en Neon:', data.evento)
+
     setSaved(true)
-    setTimeout(() => navigate('manage-events'), 1800)
+
+    setTimeout(() => {
+      navigate('manage-events')
+    }, 1800)
+
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'No se pudo guardar el evento'
+    )
+  } finally {
+    setSaving(false)
   }
+}
 
   const InputField = ({ field, label, type = 'text', placeholder = '', full = false }: { field: string; label: string; type?: string; placeholder?: string; full?: boolean }) => (
     <div style={{ gridColumn: full ? '1 / -1' : 'auto' }}>
@@ -196,15 +234,40 @@ export default function RegisterEventPage({ user, navigate, onLogout }: Register
                 />
               </div>
 
-              <div className="flex gap-4">
-                <button type="button" style={{ ...S.btnOutline, flex: 1 }} onClick={() => navigate('manage-events')}>
-                  Cancelar
-                </button>
-                <button type="submit" style={{ ...S.btnPrimary, flex: 2 }}>
-                  Guardar evento
-                </button>
-              </div>
-            </form>
+            <div className="flex gap-4">
+  <button
+    type="button"
+    style={{ ...S.btnOutline, flex: 1 }}
+    onClick={() => navigate('manage-events')}
+  >
+    Cancelar
+  </button>
+
+  <button
+    type="submit"
+    disabled={saving}
+    style={{
+      ...S.btnPrimary,
+      flex: 2,
+      opacity: saving ? 0.6 : 1,
+    }}
+  >
+    {saving ? 'Guardando...' : 'Guardar evento'}
+  </button>
+</div>
+
+{error && (
+  <p
+    style={{
+      color: '#ef4444',
+      marginTop: '16px',
+      fontSize: '14px',
+    }}
+  >
+    {error}
+  </p>
+)}
+</form>
           </div>
         </main>
       </div>

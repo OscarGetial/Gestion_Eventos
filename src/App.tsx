@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { Page, CurrentUser, AppEvent, UserType } from './types'
 
 import LoginPage from './pages/LoginPage'
@@ -90,9 +91,45 @@ const handleLogout = () => {
 }
 
   // Auth gates
+  const ManualButton = () => (
+    <a
+      href="/manual-usuario-spektra.pdf"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Abrir manual de usuario de SPEKTRA"
+      style={{
+        position: 'fixed',
+        right: '24px',
+        bottom: '24px',
+        zIndex: 9999,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '9px',
+        padding: '13px 18px',
+        borderRadius: '999px',
+        background: 'linear-gradient(135deg, #7C3AED, #5B21B6)',
+        color: '#FFFFFF',
+        fontSize: '14px',
+        fontWeight: 700,
+        textDecoration: 'none',
+        boxShadow: '0 8px 24px rgba(91, 33, 182, 0.35)',
+        border: '1px solid rgba(255,255,255,0.2)',
+      }}
+    >
+      <span aria-hidden="true">📘</span>
+      Manual de usuario
+    </a>
+  )
+
   if (!user) {
-    if (page === 'register') return <RegisterPage onNavigate={navigate} />
-    return <LoginPage onLogin={handleLogin} onNavigate={navigate} />
+    return (
+      <>
+        {page === 'register'
+          ? <RegisterPage onNavigate={navigate} />
+          : <LoginPage onLogin={handleLogin} onNavigate={navigate} />}
+        <ManualButton />
+      </>
+    )
   }
 
   const commonProps = {
@@ -101,39 +138,47 @@ const handleLogout = () => {
     onLogout: handleLogout,
   }
 
+  let currentView: ReactNode
   switch (page) {
     case 'client-home':
-      return <ClientHomePage {...commonProps} />
-
+      currentView = <ClientHomePage {...commonProps} />
+      break
     case 'event-detail':
-      return selectedEvent
+      currentView = selectedEvent
         ? <EventDetailPage {...commonProps} event={selectedEvent} />
         : <ClientHomePage {...commonProps} />
-
+      break
     case 'book-event':
-      return selectedEvent
+      currentView = selectedEvent
         ? <BookEventPage {...commonProps} event={selectedEvent} />
         : <ClientHomePage {...commonProps} />
-
+      break
     case 'my-reservations':
-      return <MyReservationsPage {...commonProps} />
-
+      currentView = <MyReservationsPage {...commonProps} />
+      break
     case 'agent-dashboard':
-      return <AgentDashboardPage {...commonProps} />
-
+      currentView = <AgentDashboardPage {...commonProps} />
+      break
     case 'register-event':
-      return <RegisterEventPage {...commonProps} />
-
+      currentView = <RegisterEventPage {...commonProps} />
+      break
     case 'manage-events':
-      return <ManageEventsPage {...commonProps} />
-
+      currentView = <ManageEventsPage {...commonProps} />
+      break
     case 'manage-reservations':
-      return <ManageReservationsPage {...commonProps} />
-
+      currentView = <ManageReservationsPage {...commonProps} />
+      break
     case 'admin-dashboard':
-      return <AdminDashboardPage {...commonProps} />
-
+      currentView = <AdminDashboardPage {...commonProps} />
+      break
     default:
-      return <LoginPage onLogin={handleLogin} onNavigate={navigate} />
+      currentView = <LoginPage onLogin={handleLogin} onNavigate={navigate} />
   }
+
+  return (
+    <>
+      {currentView}
+      <ManualButton />
+    </>
+  )
 }
